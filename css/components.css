@@ -1,0 +1,103 @@
+/* css/components.css */
+
+/* =========================================
+   MODAIS E FUNDOS ESCUROS
+   ========================================= */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000; opacity: 0; visibility: hidden; transition: var(--transition-soft);
+}
+.modal-content {
+    background-color: var(--bg-card); width: 90%; max-width: 450px;
+    border-radius: var(--radius-lg); padding: 1.5rem; border: 1px solid #323238;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); transform: translateY(30px);
+    transition: var(--transition-soft); max-height: 90vh; overflow-y: auto;
+}
+.modal-overlay.active { opacity: 1; visibility: visible; }
+.modal-overlay.active .modal-content { transform: translateY(0); }
+.modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #323238;
+}
+.close-modal { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; transition: var(--transition-soft); }
+.close-modal:hover { color: var(--status-red); }
+
+/* =========================================
+   BOTÕES GERAIS
+   ========================================= */
+.btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+    padding: 0.85rem 1.5rem; border-radius: var(--radius-md); border: none;
+    font-weight: 600; cursor: pointer; transition: var(--transition-soft); font-size: 1rem; width: 100%;
+}
+.btn-primary { background-color: var(--blue-primary); color: #fff; }
+.btn-primary:hover { background-color: var(--blue-hover); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+.btn-sm:hover { filter: brightness(1.2); transform: translateY(-2px); }
+
+/* =========================================
+   INPUTS E FORMULÁRIOS
+   ========================================= */
+.input-group { margin-bottom: 1.2rem; }
+.input-group label { display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-main); font-weight: 500; }
+.input-group input, .input-group textarea {
+    width: 100%; padding: 0.85rem 1rem; border-radius: var(--radius-md); border: 1px solid #323238;
+    background-color: #1a1a1e; color: var(--text-main); font-size: 1rem; transition: var(--transition-soft);
+}
+.input-group input[type="file"] { padding: 0.6rem; background-color: var(--bg-card); border: 1px dashed #4d4d57; cursor: pointer; color: var(--text-muted); }
+.input-group input[type="file"]::file-selector-button {
+    background-color: var(--blue-primary); color: white; border: none; padding: 0.5rem 1rem;
+    border-radius: 6px; margin-right: 1rem; cursor: pointer; font-weight: 600;
+}
+.input-group input:focus, .input-group textarea:focus {
+    outline: none; border-color: var(--blue-primary); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); background-color: #202024;
+}
+.modal-content textarea { resize: vertical; min-height: 80px; }
+
+/* =========================================
+   ESTRUTURA DO CARD DO PRODUTO (MINIATURA)
+   ========================================= */
+.product-card { position: relative; overflow: hidden; padding: 1rem 1.25rem; }
+
+.card-top {
+    display: flex; gap: 15px; align-items: flex-start;
+    width: 100%; margin-bottom: 10px; position: relative;
+}
+
+.card-img-thumb {
+    width: 75px; height: 75px; object-fit: cover;
+    border-radius: 8px; border: 1px solid #323238; flex-shrink: 0; background-color: #1a1a1e;
+}
+
+.card-info-top {
+    flex: 1; min-width: 0; padding-right: 30px; /* Impede o texto de encostar na lixeira */
+}
+
+.btn-delete {
+    position: absolute; top: 0; right: 0; background: transparent; border: none;
+    color: var(--text-muted); font-size: 1.2rem; cursor: pointer; transition: 0.2s; padding: 5px;
+}
+.btn-delete:hover { color: var(--status-red); }
+/* =========================================
+   ESTILOS DOS DETALHES E HISTÓRICO
+   ========================================= */
+.product-card { 
+    position: relative; overflow: hidden; padding: 1rem 1.25rem; 
+    cursor: pointer; /* Indica que o card é clicável */
+    transition: var(--transition-soft);
+}
+.product-card:hover { background-color: var(--bg-card-hover); }
+
+/* Removemos o click geral do card nos botões para não abrir os detalhes sem querer */
+.product-card .btn-sm, .product-card .btn-delete { position: relative; z-index: 10; }
+
+.expense-list { margin-top: 1rem; list-style: none; }
+.expense-item {
+    display: flex; justify-content: space-between; align-items: center;
+    background: #1a1a1e; padding: 0.85rem; border-radius: var(--radius-md);
+    margin-bottom: 0.5rem; border: 1px dashed #323238;
+}
+.expense-item-desc { font-weight: 500; display: block; }
+.expense-item-date { color: var(--text-muted); font-size: 0.75rem; }
+.expense-item-value { color: var(--status-red); font-weight: bold; }

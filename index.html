@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bricks Control | Login</title>
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="css/components.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body class="auth-body">
+    <main class="login-container">
+        <div class="login-header">
+            <h1>Bricks<span class="text-blue">App</span></h1>
+            <p>Acesso restrito ao sistema</p>
+        </div>
+
+        <form id="loginForm" class="login-form">
+            <div class="input-group">
+                <label for="email">E-mail</label>
+                <div class="input-wrapper">
+                    <i class="ph ph-envelope"></i>
+                    <input type="email" id="email" placeholder="Seu e-mail de admin" required>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="password">Senha</label>
+                <div class="input-wrapper">
+                    <i class="ph ph-lock"></i>
+                    <input type="password" id="password" placeholder="Sua senha secreta" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="loginBtn">
+                Entrar no Sistema
+            </button>
+            <p id="errorMessage" class="error-msg"></p>
+        </form>
+    </main>
+
+    <script type="module" src="js/auth.js"></script>
+</body>
+</html>

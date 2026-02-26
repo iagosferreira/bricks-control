@@ -1,0 +1,98 @@
+/* css/auth.css */
+
+/* Importando a fonte Inter (Padrão moderno de UI/UX) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* Reset e Fonte global para a tela de Login */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', -apple-system, sans-serif;
+}
+
+/* Fundo da tela de Login corrigido para o Dark Mode */
+.auth-body { 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    min-height: 100vh; 
+    padding: 1.5rem; 
+    position: relative; 
+    overflow: hidden; 
+    background-color: var(--bg-dark); /* Força o fundo escuro */
+    color: var(--text-main);
+}
+
+/* Efeito Glow de Fundo */
+.auth-body::before {
+    content: ''; 
+    position: absolute; 
+    width: 600px; 
+    height: 600px;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.12) 0%, transparent 60%);
+    top: 50%; left: 50%; transform: translate(-50%, -50%); 
+    z-index: 0;
+}
+
+/* O Cartão de Login */
+.login-container {
+    background-color: var(--bg-card); 
+    padding: 3.5rem 2.5rem; 
+    border-radius: var(--radius-lg);
+    width: 100%; 
+    max-width: 420px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); /* Sombra mais difusa e profissional */
+    border: 1px solid #323238;
+    position: relative;
+    z-index: 1;
+}
+
+.login-header { text-align: center; margin-bottom: 2.5rem; }
+.login-header h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -1px; color: #fff; }
+.login-header p { color: var(--text-muted); font-size: 0.95rem; margin-top: 0.5rem; }
+
+/* Grupos de Input */
+.input-group { margin-bottom: 1.5rem; }
+.input-group label { display: block; margin-bottom: 0.6rem; font-size: 0.9rem; color: var(--text-muted); font-weight: 500;}
+
+.input-wrapper { position: relative; display: flex; align-items: center; }
+.input-wrapper i { position: absolute; left: 1.2rem; color: var(--text-muted); font-size: 1.3rem; }
+
+/* Inputs refinados */
+.input-wrapper input {
+    width: 100%; 
+    padding: 1rem 1rem 1rem 3.2rem; /* Espaço maior na esquerda para o ícone não sobrepor */
+    border-radius: var(--radius-md);
+    border: 1px solid #323238; 
+    background-color: #121214; 
+    color: var(--text-main); 
+    font-size: 1rem; 
+    transition: var(--transition-soft);
+}
+
+.input-wrapper input:focus { 
+    outline: none; 
+    border-color: var(--blue-primary); 
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); 
+    background-color: #1a1a1e;
+}
+
+/* CORREÇÃO CRÍTICA: Força o Autofill do navegador a ficar escuro e não branco */
+.input-wrapper input:-webkit-autofill,
+.input-wrapper input:-webkit-autofill:hover, 
+.input-wrapper input:-webkit-autofill:focus, 
+.input-wrapper input:-webkit-autofill:active{
+    -webkit-box-shadow: 0 0 0 30px #121214 inset !important;
+    -webkit-text-fill-color: var(--text-main) !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Botão de entrar mais imponente */
+.login-form .btn-primary {
+    margin-top: 1rem;
+    padding: 1rem;
+    font-size: 1.1rem;
+}
+
+.error-msg { color: var(--status-red); font-size: 0.85rem; text-align: center; margin-top: 1.5rem; min-height: 20px; font-weight: 500;}
