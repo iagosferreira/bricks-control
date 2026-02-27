@@ -10,23 +10,23 @@ const getDaysDiff = (date) => {
 };
 
 let allProducts = []; 
+let allCategories = [];
 let selectedMonthFilter = ""; 
+let selectedCategoryFilter = "";
 
 const monthInput = document.getElementById('monthFilter');
 const clearFilterBtn = document.getElementById('clearFilterBtn');
 
-if(monthInput) {
-    monthInput.addEventListener('change', (e) => {
-        selectedMonthFilter = e.target.value;
-        renderDashboard();
-    });
-}
+// --- ATUALIZA OS FILTROS AO MUDAR ---
+if(monthInput) monthInput.addEventListener('change', (e) => { selectedMonthFilter = e.target.value; renderDashboard(); });
 
 if(clearFilterBtn) {
     clearFilterBtn.addEventListener('click', () => {
-        selectedMonthFilter = "";
-        monthInput.value = "";
-        renderDashboard();
+        selectedMonthFilter = ""; 
+        if(monthInput) monthInput.value = "";
+        selectedCategoryFilter = ""; 
+        populateCategories(); 
+        renderDashboard(); 
     });
 }
 
@@ -37,21 +37,36 @@ const renderDashboard = () => {
     
     productList.innerHTML = '';
 
-    let totalInvested = 0; let totalSales = 0; let stockValue = 0; let monthlyProfit = 0; let salesCount = 0;
+    let totalInvested = 0; let totalSales = 0; let stockValue = 0; let totalProfitFromSales = 0; let salesCount = 0;
 
-    const filteredProducts = allProducts.filter(p => {
-        if (!selectedMonthFilter) return true; 
-        if (p.status === 'sold' && p.saleDate) {
-            return p.saleDate.startsWith(selectedMonthFilter);
-        } else {
-            return p.acquisitionDate.startsWith(selectedMonthFilter);
+    // 1. Filtrar o Array Base
+    let filteredProducts = allProducts.filter(p => {
+        let matchMonth = true;
+        let matchCategory = true;
+
+        if (selectedMonthFilter) {
+            matchMonth = (p.status === 'sold' && p.saleDate) ? p.saleDate.startsWith(selectedMonthFilter) : p.acquisitionDate.startsWith(selectedMonthFilter);
         }
+        if (selectedCategoryFilter) {
+            matchCategory = p.category === selectedCategoryFilter;
+        }
+        return matchMonth && matchCategory;
+    });
+
+    // 2. ORDENAR: Itens "Em Estoque" primeiro, "Vendidos" para o final.
+    filteredProducts.sort((a, b) => {
+        if (a.status === 'in_stock' && b.status === 'sold') return -1;
+        if (a.status === 'sold' && b.status === 'in_stock') return 1;
+        return new Date(b.acquisitionDate) - new Date(a.acquisitionDate);
     });
 
     filteredProducts.forEach((p) => {
+        // KPI CALCS
         totalInvested += p.totalInvested;
         if (p.status === 'sold') {
-            totalSales += p.saleValue; monthlyProfit += p.profit; salesCount++;
+            totalSales += p.saleValue; 
+            totalProfitFromSales += p.profit; 
+            salesCount++;
         } else {
             stockValue += p.totalInvested;
         }
@@ -65,11 +80,13 @@ const renderDashboard = () => {
         card.style.borderLeft = `6px solid ${color}`;
         card.style.flexDirection = 'column';
         card.style.alignItems = 'flex-start';
+        if(p.status === 'sold') card.style.opacity = '0.7';
 
         card.innerHTML = `
             <div class="card-top">
                 <img src="${p.photo}" class="card-img-thumb" alt="Foto">
                 <div class="card-info-top">
+                    <span class="category-badge">${p.category || 'Sem Categoria'}</span>
                     <h3 style="margin:0; font-size: 1.1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.name}</h3>
                     <p style="font-size:0.8rem; color:var(--text-muted); margin-top: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${p.description}</p>
                 </div>
@@ -102,70 +119,99 @@ const renderDashboard = () => {
         productList.appendChild(card);
     });
 
+    // --- NOVA LÓGICA DO LUCRO REAL (Fluxo de Caixa) ---
+    // Lucro das Vendas MENOS o Dinheiro travado em Estoque
+    let finalRealProfit = totalProfitFromSales - stockValue;
+
     document.getElementById('kpi-invested').innerText = formatCurrency(totalInvested);
     document.getElementById('kpi-sales').innerText = formatCurrency(totalSales);
     document.getElementById('kpi-stock').innerText = formatCurrency(stockValue);
-    document.getElementById('kpi-profit').innerText = formatCurrency(monthlyProfit);
+    
+    // Pegando o elemento do Lucro para aplicar as cores
+    const kpiProfitElement = document.getElementById('kpi-profit');
+    kpiProfitElement.innerText = formatCurrency(finalRealProfit);
+
+    // Sistema de Cores (Verde se positivo, Vermelho se negativo, Branco se zerado)
+    if (finalRealProfit > 0) {
+        kpiProfitElement.style.color = 'var(--status-green)';
+    } else if (finalRealProfit < 0) {
+        kpiProfitElement.style.color = 'var(--status-red)';
+    } else {
+        kpiProfitElement.style.color = 'var(--text-main)';
+    }
+
     document.getElementById('kpi-sales-count').innerText = `${salesCount} vendas`;
 };
 
-// --- FUNÇÃO: ABRIR DETALHES E HISTÓRICO ---
-const abrirDetalhesProduto = (id) => {
-    const p = allProducts.find(prod => prod.id === id);
-    if (!p) return;
+// --- RENDERIZAR OPÇÕES DE CATEGORIA (PILLS) ---
+const populateCategories = () => {
+    const pillsContainer = document.getElementById('categoryPills');
+    const formSelect = document.getElementById('productCategory');
+    if(!pillsContainer || !formSelect) return;
 
-    let extraCostsHtml = '';
-    if (p.extraCosts && p.extraCosts.length > 0) {
-        extraCostsHtml = '<ul class="expense-list">';
-        p.extraCosts.forEach(cost => {
-            const dataGasto = new Date(cost.date).toLocaleDateString('pt-BR');
-            extraCostsHtml += `
-                <li class="expense-item">
-                    <div>
-                        <span class="expense-item-desc">${cost.desc}</span>
-                        <span class="expense-item-date">${dataGasto}</span>
-                    </div>
-                    <span class="expense-item-value">+ ${formatCurrency(cost.value)}</span>
-                </li>
-            `;
-        });
-        extraCostsHtml += '</ul>';
-    } else {
-        extraCostsHtml = '<p style="color:var(--text-muted); font-size: 0.9rem; margin-top:1rem;">Nenhum gasto extra (upsell) foi adicionado a este produto.</p>';
-    }
+    formSelect.innerHTML = '<option value="" disabled selected>Selecione...</option>';
+    allCategories.forEach(cat => {
+        formSelect.innerHTML += `<option value="${cat.name}">${cat.name}</option>`;
+    });
 
-    const dataCompra = new Date(p.acquisitionDate).toLocaleDateString('pt-BR');
-
-    document.getElementById('detailsContent').innerHTML = `
-        <div style="display:flex; gap:15px; margin-bottom:15px; border-bottom: 1px solid #323238; padding-bottom: 15px;">
-            <img src="${p.photo}" style="width:70px; height:70px; object-fit:cover; border-radius:8px; border: 1px solid #323238;">
-            <div>
-                <h3 style="margin-bottom:5px;">${p.name}</h3>
-                <p style="color:var(--text-muted); font-size:0.85rem;">Adquirido em: ${dataCompra}</p>
-                <p style="color:var(--status-green); font-weight:bold; margin-top:5px;">Custo Inicial: ${formatCurrency(p.baseCost)}</p>
-            </div>
-        </div>
-        <h4 style="margin-top: 10px; color: var(--text-main);">Histórico de Gastos (Upsell)</h4>
-        ${extraCostsHtml}
-        <div style="margin-top: 15px; text-align: right; font-size: 1.1rem; padding-top: 15px; border-top: 1px solid #323238;">
-            <span style="color: var(--text-muted); font-size: 0.9rem;">Total Investido:</span> <br>
-            <strong style="color:var(--blue-primary); font-size: 1.3rem;">${formatCurrency(p.totalInvested)}</strong>
-        </div>
+    pillsContainer.innerHTML = `
+        <button class="category-pill ${selectedCategoryFilter === "" ? "active" : ""}" data-cat="">
+            <i class="ph ph-squares-four"></i> Todas
+        </button>
     `;
+    
+    allCategories.forEach(cat => {
+        pillsContainer.innerHTML += `
+            <button class="category-pill ${selectedCategoryFilter === cat.name ? "active" : ""}" data-cat="${cat.name}">
+                ${cat.name}
+            </button>
+        `;
+    });
 
-    document.getElementById('modalDetails').classList.add('active');
+    document.querySelectorAll('.category-pill').forEach(pill => {
+        pill.addEventListener('click', (e) => {
+            selectedCategoryFilter = e.currentTarget.getAttribute('data-cat');
+            populateCategories(); 
+            renderDashboard(); 
+        });
+    });
 };
 
-// --- CONEXÃO COM O BANCO EM TEMPO REAL ---
+// --- BUSCA TEMPO REAL NO BANCO DE DADOS ---
+onSnapshot(query(collection(db, "categories"), orderBy("name", "asc")), (snapshot) => {
+    allCategories = [];
+    snapshot.forEach(doc => allCategories.push({ id: doc.id, name: doc.data().name }));
+    populateCategories();
+});
+
 onSnapshot(query(collection(db, "products"), orderBy("acquisitionDate", "desc")), (snapshot) => {
     allProducts = [];
-    snapshot.forEach((docSnap) => {
-        allProducts.push({ id: docSnap.id, ...docSnap.data() });
-    });
+    snapshot.forEach(doc => allProducts.push({ id: doc.id, ...doc.data() }));
     renderDashboard();
 });
 
-// --- SALVAR NOVO PRODUTO COM TRAVA DE SEGURANÇA ---
+// --- CRIAR NOVA CATEGORIA ---
+const btnOpenNewCategory = document.getElementById('btnOpenNewCategory');
+if(btnOpenNewCategory) {
+    btnOpenNewCategory.addEventListener('click', () => {
+        document.getElementById('modalNewCategory').classList.add('active');
+    });
+}
+
+const formNewCategory = document.getElementById('formNewCategory');
+if(formNewCategory) {
+    formNewCategory.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const catName = document.getElementById('newCategoryName').value.trim();
+        try {
+            await addDoc(collection(db, "categories"), { name: catName });
+            document.getElementById('modalNewCategory').classList.remove('active');
+            formNewCategory.reset();
+        } catch (err) { alert("Erro ao criar categoria"); }
+    });
+}
+
+// --- SALVAR NOVO PRODUTO ---
 const formNewProduct = document.getElementById('formNewProduct');
 if(formNewProduct) {
     formNewProduct.addEventListener('submit', async (e) => {
@@ -175,7 +221,7 @@ if(formNewProduct) {
 
         try {
             const dateInput = document.getElementById('productDate');
-            if(!dateInput) throw new Error("Campo de data não encontrado no HTML!");
+            const categoryInput = document.getElementById('productCategory');
 
             const imageFile = document.getElementById('productImage').files[0];
             const base64Photo = await compressImageToBase64(imageFile);
@@ -186,6 +232,7 @@ if(formNewProduct) {
             const newProduct = {
                 name: document.getElementById('productName').value,
                 description: document.getElementById('productDesc').value || "",
+                category: categoryInput.value || "Outros", 
                 baseCost: parseFloat(document.getElementById('productCost').value),
                 totalInvested: parseFloat(document.getElementById('productCost').value),
                 acquisitionDate: acquisitionDate,
@@ -195,17 +242,15 @@ if(formNewProduct) {
             await addDoc(collection(db, "products"), newProduct);
             formNewProduct.reset();
             document.getElementById('modalNewProduct').classList.remove('active');
-            alert("Produto cadastrado com sucesso!");
         } catch (err) { 
-            console.error("ERRO COMPLETO:", err);
-            alert("Erro ao salvar: " + err.message); 
+            console.error(err); alert("Erro ao salvar: " + err.message); 
         } finally { 
             btn.innerText = "Salvar Produto"; btn.disabled = false; 
         }
     });
 }
 
-// --- DELEGAÇÃO DE EVENTOS (Gasto, Vender, Excluir e Abrir Detalhes) ---
+// --- DELEGAÇÃO DE EVENTOS CLIQUE (Cards) ---
 const productListElement = document.getElementById('productList');
 if(productListElement) {
     productListElement.addEventListener('click', async (e) => {
@@ -214,30 +259,70 @@ if(productListElement) {
         const btnDelete = e.target.closest('.btn-delete');
         const cardClicado = e.target.closest('.product-card');
 
-        if (btnGasto) {
-            document.getElementById('expenseProductId').value = btnGasto.getAttribute('data-id');
-            document.getElementById('modalAddExpense').classList.add('active');
-            return;
-        }
-        
-        if (btnVender) {
-            document.getElementById('sellProductId').value = btnVender.getAttribute('data-id');
-            document.getElementById('modalSell').classList.add('active');
-            return;
-        }
-        
-        if (btnDelete) {
-            if (confirm("🚨 Tem certeza que deseja excluir permanentemente este produto do sistema?")) {
-                await deleteDoc(doc(db, "products", btnDelete.getAttribute('data-id')));
-            }
-            return;
-        }
+        if (btnGasto) { document.getElementById('expenseProductId').value = btnGasto.getAttribute('data-id'); document.getElementById('modalAddExpense').classList.add('active'); return; }
+        if (btnVender) { document.getElementById('sellProductId').value = btnVender.getAttribute('data-id'); document.getElementById('modalSell').classList.add('active'); return; }
+        if (btnDelete) { if (confirm("🚨 Excluir permanentemente este produto?")) await deleteDoc(doc(db, "products", btnDelete.getAttribute('data-id'))); return; }
 
-        if (cardClicado) {
-            abrirDetalhesProduto(cardClicado.getAttribute('data-id'));
-        }
+        if (cardClicado) abrirDetalhesProduto(cardClicado.getAttribute('data-id'));
     });
 }
+
+// --- FUNÇÃO: ABRIR DETALHES E EDITAR CATEGORIA ---
+const abrirDetalhesProduto = (id) => {
+    const p = allProducts.find(prod => prod.id === id);
+    if (!p) return;
+
+    let extraCostsHtml = '';
+    if (p.extraCosts && p.extraCosts.length > 0) {
+        extraCostsHtml = '<ul class="expense-list">';
+        p.extraCosts.forEach(cost => {
+            const dataGasto = new Date(cost.date).toLocaleDateString('pt-BR');
+            extraCostsHtml += `<li class="expense-item"><div><span class="expense-item-desc">${cost.desc}</span><span class="expense-item-date">${dataGasto}</span></div><span class="expense-item-value">+ ${formatCurrency(cost.value)}</span></li>`;
+        });
+        extraCostsHtml += '</ul>';
+    } else {
+        extraCostsHtml = '<p style="color:var(--text-muted); font-size: 0.9rem; margin-top:1rem;">Nenhum gasto extra adicionado.</p>';
+    }
+
+    const dataCompra = new Date(p.acquisitionDate).toLocaleDateString('pt-BR');
+    let catOptions = allCategories.map(c => `<option value="${c.name}" ${p.category === c.name ? 'selected' : ''}>${c.name}</option>`).join('');
+
+    const descText = p.description ? p.description : "Nenhuma descrição informada.";
+
+    document.getElementById('detailsContent').innerHTML = `
+        <div style="display:flex; gap:15px; margin-bottom:15px; border-bottom: 1px solid #323238; padding-bottom: 15px;">
+            <img src="${p.photo}" style="width:70px; height:70px; object-fit:cover; border-radius:8px; border: 1px solid #323238;">
+            <div style="flex:1; min-width:0;">
+                <h3 style="margin-bottom:2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.name}</h3>
+                <label style="font-size: 0.75rem; color: var(--text-muted);">Alterar Categoria:</label>
+                <select class="edit-category-select" id="editCat-${p.id}">
+                    <option value="Outros">Outros</option>
+                    ${catOptions}
+                </select>
+                <p style="color:var(--text-muted); font-size:0.85rem; margin-top: 5px;">Adquirido em: ${dataCompra}</p>
+            </div>
+        </div>
+
+        <div style="background-color: #1a1a1e; border: 1px dashed #323238; border-radius: 8px; padding: 12px; margin-bottom: 15px;">
+            <strong style="color: var(--text-main); font-size: 0.85rem; display: block; margin-bottom: 4px;">Descrição:</strong>
+            <p style="color: var(--text-muted); font-size: 0.9rem; white-space: pre-wrap; line-height: 1.4;">${descText}</p>
+        </div>
+
+        <h4 style="margin-top: 10px; color: var(--text-main);">Histórico de Gastos</h4>
+        ${extraCostsHtml}
+        
+        <div style="margin-top: 15px; text-align: right; font-size: 1.1rem; padding-top: 15px; border-top: 1px solid #323238;">
+            <span style="color: var(--text-muted); font-size: 0.9rem;">Total Investido:</span> <br>
+            <strong style="color:var(--blue-primary); font-size: 1.3rem;">${formatCurrency(p.totalInvested)}</strong>
+        </div>
+    `;
+
+    document.getElementById('modalDetails').classList.add('active');
+
+    document.getElementById(`editCat-${p.id}`).addEventListener('change', async (e) => {
+        try { await updateDoc(doc(db, "products", p.id), { category: e.target.value }); } catch(err) { alert("Erro ao mudar categoria"); }
+    });
+};
 
 // --- MODAIS DE GASTO E VENDA ---
 const formAddExpense = document.getElementById('formAddExpense');
@@ -266,10 +351,20 @@ if(formSell) {
         e.preventDefault();
         const id = document.getElementById('sellProductId').value;
         const val = parseFloat(document.getElementById('sellValue').value);
+        const dateInput = document.getElementById('sellDate').value;
+        
         try {
             const docRef = doc(db, "products", id);
             const pData = (await getDoc(docRef)).data();
-            await updateDoc(docRef, { status: 'sold', saleValue: val, saleDate: new Date().toISOString(), profit: val - pData.totalInvested });
+            
+            const saleDateISO = new Date(dateInput + 'T12:00:00Z').toISOString();
+
+            await updateDoc(docRef, { 
+                status: 'sold', 
+                saleValue: val, 
+                saleDate: saleDateISO, 
+                profit: val - pData.totalInvested 
+            });
             document.getElementById('modalSell').classList.remove('active');
             formSell.reset();
         } catch (error) { alert("Falha ao concluir a venda."); }
