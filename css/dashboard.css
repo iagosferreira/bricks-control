@@ -173,3 +173,40 @@ body { background-color: var(--bg-dark); color: var(--text-main); -webkit-font-s
 .category-pill { background-color: transparent; color: var(--text-muted); border: 1px solid #323238; padding: 0.5rem 1.25rem; border-radius: 999px; font-size: 0.9rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: var(--transition-soft); display: flex; align-items: center; gap: 0.4rem; }
 .category-pill:hover { border-color: var(--blue-primary); color: var(--text-main); }
 .category-pill.active { background-color: var(--blue-primary); color: #fff; border-color: var(--blue-primary); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+
+/* =========================================
+   BANNER DE ROI VS MERCADO
+   ========================================= */
+.roi-market-banner {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(4, 211, 97, 0.1) 100%);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: var(--radius-lg);
+    padding: 1.2rem 1.5rem;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================
+   LISTA DE ESTOQUE SECUNDÁRIO (PEÇAS)
+   ========================================= */
+.part-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-dark);
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    margin-bottom: 0.5rem;
+    border: 1px solid #323238;
+}
+.part-info strong { display: block; font-size: 0.95rem; }
+.part-info span { color: var(--text-muted); font-size: 0.8rem; }
+.part-qty { background: var(--blue-primary); color: white; padding: 2px 8px; border-radius: 99px; font-size: 0.8rem; font-weight: bold; margin-left: 10px; }

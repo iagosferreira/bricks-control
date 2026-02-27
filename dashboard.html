@@ -7,9 +7,7 @@
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="css/components.css">
-    
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -56,22 +54,29 @@
             </div>
         </section>
 
-        <section class="actions" style="display: flex; gap: 10px; align-items: center;">
-            <button class="btn btn-primary" id="newProductBtn" style="flex: 1; min-width: 200px;">
+        <div class="roi-market-banner" id="roiMarketBanner" style="display: none;">
+            </div>
+
+        <section class="actions" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <button class="btn btn-primary" id="newProductBtn" style="flex: 1; min-width: 180px;">
                 <i class="ph ph-plus-circle"></i> Novo Produto
             </button>
-            <button class="btn-icon-bg" id="openChartBtn" title="Ver Gráficos">
-                <i class="ph ph-chart-bar" style="color: var(--blue-primary);"></i>
+            <button class="btn btn-secondary" id="openPartsBtn" style="flex: 1; min-width: 180px;">
+                <i class="ph ph-cpu"></i> Estoque de Insumos/Acessórios
             </button>
-            <button class="btn-icon-bg" id="exportCsvBtn" title="Baixar Relatório em Excel">
-                <i class="ph ph-file-xls" style="color: var(--status-green);"></i>
-            </button>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-icon-bg" id="openChartBtn" title="Ver Gráficos">
+                    <i class="ph ph-chart-bar" style="color: var(--blue-primary);"></i>
+                </button>
+                <button class="btn-icon-bg" id="exportCsvBtn" title="Baixar Relatório em Excel">
+                    <i class="ph ph-file-xls" style="color: var(--status-green);"></i>
+                </button>
+            </div>
         </section>
 
         <section class="products-section">
             <div class="section-header">
                 <h2>Inventário e Vendas</h2>
-                
                 <div class="filters-container">
                     <div class="filter-box">
                         <label for="monthFilter"><i class="ph ph-calendar-blank"></i> Mês:</label>
@@ -80,12 +85,8 @@
                     <button id="clearFilterBtn" class="btn-icon" title="Limpar Filtros"><i class="ph ph-x-circle"></i></button>
                 </div>
             </div>
-            
-            <div class="category-pills" id="categoryPills">
-                </div>
-            
-            <div class="product-list" id="productList">
-                </div>
+            <div class="category-pills" id="categoryPills"></div>
+            <div class="product-list" id="productList"></div>
         </section>
     </main>
 
@@ -99,7 +100,6 @@
                 <div class="input-group">
                     <label>Foto do Produto</label>
                     <input type="file" id="productImage" accept="image/*" required>
-                    <small style="color: var(--text-muted); font-size: 0.75rem;">A imagem será otimizada automaticamente.</small>
                 </div>
                 <div class="input-group">
                     <label>Categoria</label>
@@ -123,26 +123,10 @@
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Descrição (Acessórios, detalhes)</label>
-                    <textarea id="productDesc" rows="2" placeholder="Ex: Botão eject consertado..."></textarea>
+                    <label>Descrição</label>
+                    <textarea id="productDesc" rows="2" placeholder="Ex: Acompanha caixa..."></textarea>
                 </div>
                 <button type="submit" class="btn btn-primary" id="btnSaveProduct">Salvar Produto</button>
-            </form>
-        </div>
-    </div>
-
-    <div id="modalNewCategory" class="modal-overlay" style="z-index: 1001;">
-        <div class="modal-content" style="max-width: 350px;">
-            <div class="modal-header">
-                <h2>Nova Categoria</h2>
-                <button class="close-modal" data-modal="modalNewCategory"><i class="ph ph-x"></i></button>
-            </div>
-            <form id="formNewCategory">
-                <div class="input-group">
-                    <label>Nome da Categoria</label>
-                    <input type="text" id="newCategoryName" placeholder="Ex: PS2, Acessórios..." required>
-                </div>
-                <button type="submit" class="btn btn-primary">Criar Categoria</button>
             </form>
         </div>
     </div>
@@ -150,87 +134,83 @@
     <div id="modalAddExpense" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Adicionar Gasto</h2>
+                <h2>Adicionar Gasto / Peça</h2>
                 <button class="close-modal" data-modal="modalAddExpense"><i class="ph ph-x"></i></button>
             </div>
             <form id="formAddExpense">
                 <input type="hidden" id="expenseProductId">
-                <div class="input-group">
-                    <label>Descrição do Gasto</label>
-                    <input type="text" id="expenseDesc" placeholder="Ex: Compra de manete nova" required>
-                </div>
-                <div class="input-group">
-                    <label>Valor do Gasto (R$)</label>
-                    <input type="number" id="expenseCost" step="0.01" placeholder="Ex: 50.00" required>
-                </div>
-                <button type="submit" class="btn btn-primary">Adicionar Gasto</button>
-            </form>
-        </div>
-    </div>
-
-    <div id="modalSell" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Concluir Venda</h2>
-                <button class="close-modal" data-modal="modalSell"><i class="ph ph-x"></i></button>
-            </div>
-            <form id="formSell">
-                <input type="hidden" id="sellProductId">
                 
                 <div class="input-group">
-                    <label>Canal de Venda</label>
-                    <select id="sellChannel" required>
-                        <option value="" disabled selected>Onde você vendeu?</option>
-                        <option value="Instagram">Instagram</option>
-                        <option value="Shopee">Shopee</option>
-                        <option value="OLX">OLX</option>
-                        <option value="Mercado Livre">Mercado Livre</option>
-                        <option value="WhatsApp / Boca a Boca">WhatsApp / Boca a Boca</option>
-                        <option value="Outro">Outro</option>
+                    <label>Origem do Gasto</label>
+                    <select id="expenseType" style="background:#1a1a1e; color:white; border:1px solid #323238; padding:10px; border-radius:8px; width:100%;">
+                        <option value="manual">Dinheiro Novo (Compra avulsa)</option>
+                        <option value="stock">Puxar do Estoque de Insumos</option>
                     </select>
                 </div>
 
-                <div class="input-group">
-                    <label>Data da Venda</label>
-                    <input type="date" id="sellDate" required>
-                </div>
-                <div class="input-group" style="display: flex; gap: 10px;">
-                    <div style="flex: 2;">
-                        <label>Valor da Venda (R$)</label>
-                        <input type="number" id="sellValue" step="0.01" placeholder="Ex: 1200.00" required>
+                <div id="expenseManualDiv">
+                    <div class="input-group">
+                        <label>Descrição</label>
+                        <input type="text" id="expenseDesc" placeholder="Ex: Limpa contato">
                     </div>
-                    <div style="flex: 1;">
-                        <label>Taxas/Frete</label>
-                        <input type="number" id="sellFee" step="0.01" placeholder="0.00" value="0">
+                    <div class="input-group">
+                        <label>Valor (R$)</label>
+                        <input type="number" id="expenseCost" step="0.01" placeholder="Ex: 50.00">
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary" style="background-color: var(--status-green);">Confirmar Venda</button>
+
+                <div id="expenseStockDiv" style="display:none;">
+                    <div class="input-group">
+                        <label>Selecione a Peça/Acessório</label>
+                        <select id="expenseStockPart" style="background:#1a1a1e; color:white; border:1px solid #323238; padding:10px; border-radius:8px; width:100%;">
+                            </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Adicionar ao Produto</button>
             </form>
         </div>
     </div>
 
-    <div id="modalDetails" class="modal-overlay">
-        <div class="modal-content">
+    <div id="modalParts" class="modal-overlay">
+        <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
-                <h2>Detalhes e Gastos</h2>
-                <button class="close-modal" data-modal="modalDetails"><i class="ph ph-x"></i></button>
+                <h2>Estoque Secundário (Peças)</h2>
+                <button class="close-modal" data-modal="modalParts"><i class="ph ph-x"></i></button>
             </div>
-            <div id="detailsContent" style="color: var(--text-main); font-size: 0.95rem;">
+            
+            <form id="formNewPart" style="background: #1a1a1e; padding: 15px; border-radius: 8px; border: 1px dashed #323238; margin-bottom: 20px;">
+                <h4 style="margin-bottom: 10px; color: var(--blue-primary);">+ Dar Entrada em Peças</h4>
+                <div class="input-group">
+                    <label>Nome do Insumo/Acessório</label>
+                    <input type="text" id="partName" placeholder="Ex: Jogo PS3 Mídia Física" required>
                 </div>
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <div style="flex: 1;">
+                        <label>Quantidade</label>
+                        <input type="number" id="partQty" value="1" min="1" required>
+                    </div>
+                    <div style="flex: 1;">
+                        <label>Custo Unitário (R$)</label>
+                        <input type="number" id="partCost" step="0.01" placeholder="0.00" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="padding: 0.5rem;">Cadastrar Peças</button>
+            </form>
+
+            <h4 style="margin-bottom: 10px;">Itens Disponíveis</h4>
+            <ul id="partsList" style="list-style: none; padding: 0; max-height: 200px; overflow-y: auto;">
+                </ul>
         </div>
     </div>
 
-    <div id="modalChart" class="modal-overlay">
-        <div class="modal-content" style="max-width: 600px;">
-            <div class="modal-header">
-                <h2>Desempenho Financeiro</h2>
-                <button class="close-modal" data-modal="modalChart"><i class="ph ph-x"></i></button>
-            </div>
-            <div style="position: relative; height: 300px; width: 100%;">
-                <canvas id="financeChart"></canvas>
-            </div>
-        </div>
-    </div>
+    <div id="modalNewCategory" class="modal-overlay" style="z-index: 1001;"><div class="modal-content" style="max-width: 350px;"><div class="modal-header"><h2>Nova Categoria</h2><button class="close-modal" data-modal="modalNewCategory"><i class="ph ph-x"></i></button></div><form id="formNewCategory"><div class="input-group"><label>Nome</label><input type="text" id="newCategoryName" required></div><button type="submit" class="btn btn-primary">Criar</button></form></div></div>
+    
+    <div id="modalSell" class="modal-overlay"><div class="modal-content"><div class="modal-header"><h2>Concluir Venda</h2><button class="close-modal" data-modal="modalSell"><i class="ph ph-x"></i></button></div><form id="formSell"><input type="hidden" id="sellProductId"><div class="input-group"><label>Canal de Venda</label><select id="sellChannel" required><option value="" disabled selected>Onde você vendeu?</option><option value="Instagram">Instagram</option><option value="Shopee">Shopee</option><option value="OLX">OLX</option><option value="Mercado Livre">Mercado Livre</option><option value="WhatsApp / Boca a Boca">WhatsApp / Boca a Boca</option><option value="Outro">Outro</option></select></div><div class="input-group"><label>Data da Venda</label><input type="date" id="sellDate" required></div><div class="input-group" style="display: flex; gap: 10px;"><div style="flex: 2;"><label>Valor (R$)</label><input type="number" id="sellValue" step="0.01" required></div><div style="flex: 1;"><label>Taxas</label><input type="number" id="sellFee" step="0.01" value="0"></div></div><button type="submit" class="btn btn-primary" style="background-color: var(--status-green);">Confirmar Venda</button></form></div></div>
+    
+    <div id="modalDetails" class="modal-overlay"><div class="modal-content"><div class="modal-header"><h2>Detalhes e Gastos</h2><button class="close-modal" data-modal="modalDetails"><i class="ph ph-x"></i></button></div><div id="detailsContent" style="color: var(--text-main); font-size: 0.95rem;"></div></div></div>
+    
+    <div id="modalChart" class="modal-overlay"><div class="modal-content" style="max-width: 600px;"><div class="modal-header"><h2>Desempenho Financeiro</h2><button class="close-modal" data-modal="modalChart"><i class="ph ph-x"></i></button></div><div style="position: relative; height: 300px; width: 100%;"><canvas id="financeChart"></canvas></div></div></div>
 
     <script type="module" src="js/app.js"></script>
     <script type="module" src="js/firestore.js"></script>
