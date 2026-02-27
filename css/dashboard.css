@@ -143,3 +143,33 @@ body { background-color: var(--bg-dark); color: var(--text-main); -webkit-font-s
     border-color: var(--blue-primary);
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
+/* =========================================
+   NOVO BOTÃO DE EXPORTAR (ÍCONE PEQUENO)
+   ========================================= */
+.btn-icon-bg {
+    background-color: var(--bg-card);
+    border: 1px solid #323238;
+    color: var(--text-main);
+    padding: 0.85rem;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    transition: var(--transition-soft);
+}
+
+.btn-icon-bg:hover {
+    background-color: var(--bg-card-hover);
+    border-color: var(--status-green);
+}
+
+/* =========================================
+   NOVO UI/UX: CHIPS DE CATEGORIA (PILLS)
+   ========================================= */
+.category-pills { display: flex; gap: 0.75rem; overflow-x: auto; padding: 0.5rem 0 1.5rem 0; scrollbar-width: none; -ms-overflow-style: none; }
+.category-pills::-webkit-scrollbar { display: none; }
+.category-pill { background-color: transparent; color: var(--text-muted); border: 1px solid #323238; padding: 0.5rem 1.25rem; border-radius: 999px; font-size: 0.9rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: var(--transition-soft); display: flex; align-items: center; gap: 0.4rem; }
+.category-pill:hover { border-color: var(--blue-primary); color: var(--text-main); }
+.category-pill.active { background-color: var(--blue-primary); color: #fff; border-color: var(--blue-primary); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
