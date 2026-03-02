@@ -7,6 +7,17 @@
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="css/components.css">
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="assets/icon-192.png">
+    <script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('PWA carregado com sucesso!'))
+        .catch(err => console.log('Erro ao carregar PWA', err));
+    }
+    </script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -257,7 +268,7 @@
                     <div style="flex: 1;"><input type="text" id="sellClientWpp" placeholder="WhatsApp"></div>
                 </div>
 
-                <div class="input-group" style="margin-bottom: 5px;"><select id="sellChannel" required><option value="" disabled selected>Onde você vendeu?</option><option value="Instagram">Instagram</option><option value="Shopee">Shopee</option><option value="OLX">OLX</option><option value="Mercado Livre">Mercado Livre</option><option value="WhatsApp / Boca a Boca">WhatsApp / Boca a Boca</option><option value="Outro">Outro</option></select></div>
+                <div class="input-group" style="margin-bottom: 5px;"><select id="sellChannel" required><option value="" disabled selected>Onde você vendeu?</option><option value="Marketplace">Marketplace</option><option value="OLX">OLX</option><option value="WhatsApp / Boca a Boca">WhatsApp / Boca a Boca</option><option value="Outro">Outro</option></select></div>
                 <div class="input-group" style="margin-bottom: 5px;"><input type="date" id="sellDate" required></div>
                 <div class="input-group" style="display: flex; gap: 10px;">
                     <div style="flex: 2;"><label style="font-size:0.8rem">Valor Total Recebido (R$)</label><input type="number" id="sellValue" step="0.01" required></div>

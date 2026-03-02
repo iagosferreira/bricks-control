@@ -9,6 +9,19 @@
     <link rel="stylesheet" href="css/components.css">
     <link rel="shortcut icon" href="/assets/favicon.ico" type="image/x-icon">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="assets/icon-192.png">
+
+    <script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('PWA carregado com sucesso!'))
+        .catch(err => console.log('Erro ao carregar PWA', err));
+    }
+    </script>
 </head>
 <body class="auth-body">
     <main class="login-container">
