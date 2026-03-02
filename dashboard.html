@@ -15,203 +15,268 @@
         <h2>Bricks<span class="text-blue">App</span></h2>
         <button id="logoutBtn" class="btn-logout"><i class="ph ph-sign-out"></i> Sair</button>
     </nav>
-
+ 
     <main class="container">
         <header class="page-header">
             <h1>Visão Geral</h1>
-            <p>Acompanhe suas métricas de compra e venda.</p>
+            <p>Acompanhe suas métricas de caixa e inventário.</p>
         </header>
-
+ 
         <section class="kpi-grid">
             <div class="kpi-card">
-                <div class="kpi-icon"><i class="ph ph-trend-down"></i></div>
+                <div class="kpi-icon" style="color: var(--status-red); background: rgba(247, 90, 104, 0.1);"><i class="ph ph-piggy-bank"></i></div>
                 <div class="kpi-info">
-                    <span>Total Investido</span>
-                    <h3 id="kpi-invested">R$ 0,00</h3>
+                    <span>Investimento do Bolso</span>
+                    <h3 id="kpi-pocket">R$ 0,00</h3>
                 </div>
             </div>
             <div class="kpi-card">
-                <div class="kpi-icon"><i class="ph ph-trend-up"></i></div>
+                <div class="kpi-icon" style="color: var(--text-main); background: #323238;"><i class="ph ph-wallet"></i></div>
                 <div class="kpi-info">
-                    <span>Total de Vendas</span>
+                    <span>Faturamento Bruto</span>
                     <h3 id="kpi-sales">R$ 0,00</h3>
                 </div>
             </div>
             <div class="kpi-card">
-                <div class="kpi-icon"><i class="ph ph-package"></i></div>
+                <div class="kpi-icon" style="color: var(--status-yellow); background: rgba(251, 169, 76, 0.1);"><i class="ph ph-package"></i></div>
                 <div class="kpi-info">
-                    <span>Valor em Estoque</span>
+                    <span>Dinheiro em Estoque</span>
                     <h3 id="kpi-stock">R$ 0,00</h3>
                 </div>
             </div>
             <div class="kpi-card highlight">
                 <div class="kpi-icon"><i class="ph ph-currency-circle-dollar"></i></div>
                 <div class="kpi-info">
-                    <span>Fluxo de Caixa Livre</span>
+                    <span>Lucro Líquido Real</span>
                     <h3 id="kpi-profit">R$ 0,00</h3>
                     <small id="kpi-sales-count">0 vendas</small>
                 </div>
             </div>
         </section>
-
-        <div class="roi-market-banner" id="roiMarketBanner" style="display: none;">
-            </div>
-
+ 
         <section class="actions" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
             <button class="btn btn-primary" id="newProductBtn" style="flex: 1; min-width: 180px;">
-                <i class="ph ph-plus-circle"></i> Novo Produto
+                <i class="ph ph-plus-circle"></i> Novo Lote
             </button>
             <button class="btn btn-secondary" id="openPartsBtn" style="flex: 1; min-width: 180px;">
-                <i class="ph ph-cpu"></i> Estoque de Insumos/Acessórios
+                <i class="ph ph-cpu"></i> Estoque Secundário
             </button>
             <div style="display: flex; gap: 10px;">
-                <button class="btn-icon-bg" id="openChartBtn" title="Ver Gráficos">
-                    <i class="ph ph-chart-bar" style="color: var(--blue-primary);"></i>
+                <button class="btn-icon-bg" id="btnOpenRanking" title="Ranking de Categorias">
+                    <i class="ph-fill ph-trophy" style="color: #fba94c;"></i>
                 </button>
-                <button class="btn-icon-bg" id="exportCsvBtn" title="Baixar Relatório em Excel">
+                <button class="btn-icon-bg" id="btnToggleBulkMode" title="Selecionar Vários Itens">
+                    <i class="ph ph-list-checks" style="color: var(--blue-primary);"></i>
+                </button>
+                <button class="btn-icon-bg" id="exportCsvBtn" title="Baixar Relatório">
                     <i class="ph ph-file-xls" style="color: var(--status-green);"></i>
                 </button>
             </div>
         </section>
-
+ 
         <section class="products-section">
             <div class="section-header">
                 <h2>Inventário e Vendas</h2>
                 <div class="filters-container">
                     <div class="filter-box">
-                        <label for="monthFilter"><i class="ph ph-calendar-blank"></i> Mês:</label>
-                        <input type="month" id="monthFilter" class="month-input">
+                        <i class="ph ph-calendar-blank" style="color: var(--blue-primary);"></i>
+                        <input type="month" id="monthFilter" class="month-input" title="Filtrar por Mês">
                     </div>
+                    
+                    <div class="custom-dropdown" id="statusDropdown">
+                        <div class="dropdown-header">
+                            <i class="ph ph-funnel" style="color: var(--blue-primary);"></i>
+                            <span id="statusDropdownText">Status: Todos</span>
+                            <i class="ph ph-caret-down" style="color: var(--text-muted); margin-left: 5px; font-size: 0.8rem;"></i>
+                        </div>
+                        <ul class="dropdown-list">
+                            <li data-value="" class="active">Status: Todos</li>
+                            <li data-value="in_stock">Apenas Em Estoque</li>
+                            <li data-value="sold">Apenas Vendidos</li>
+                        </ul>
+                    </div>
+
                     <button id="clearFilterBtn" class="btn-icon" title="Limpar Filtros"><i class="ph ph-x-circle"></i></button>
                 </div>
             </div>
             <div class="category-pills" id="categoryPills"></div>
-            <div class="product-list" id="productList"></div>
+            <div class="product-list" id="productList" style="min-height: 500px;"></div>
         </section>
     </main>
 
+    <div id="customDialog" class="modal-overlay" style="z-index: 9999;">
+        <div class="modal-content" style="max-width: 350px; text-align: center; padding: 2rem;">
+            <div id="dialogIcon" style="font-size: 3rem; margin-bottom: 10px; color: var(--blue-primary);"><i class="ph ph-info"></i></div>
+            <h2 id="dialogTitle" style="margin-bottom: 10px; font-size: 1.2rem;"></h2>
+            <p id="dialogMessage" style="color: var(--text-muted); margin-bottom: 25px; font-size: 0.95rem; line-height: 1.4;"></p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button id="btnDialogCancel" class="btn btn-secondary" style="flex: 1; display: none;">Cancelar</button>
+                <button id="btnDialogConfirm" class="btn btn-primary" style="flex: 1;">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="bulkActionBar" class="bulk-action-bar">
+        <span id="bulkCount">0 selecionados</span>
+        <button id="btnBulkSelectAll" class="btn btn-sm" style="background: rgba(255,255,255,0.1); color: white;"><i class="ph ph-check-square"></i> Todos</button>
+        <button id="btnBulkDelete" class="btn btn-sm" style="background: var(--status-red); color: white; display: none;"><i class="ph ph-trash"></i> Excluir</button>
+        <button id="btnBulkCancel" class="btn btn-sm" style="background: transparent; color: white; border: 1px solid #323238;">Cancelar</button>
+    </div>
+
+    <div id="saleCelebration" class="celebration-overlay">
+        <div class="celebration-content">
+            <div class="celebration-icon"><i class="ph ph-confetti"></i></div>
+            <h2>Venda Concluída!</h2>
+            <p>Parabéns, mais dinheiro no caixa.</p>
+            <h1 id="celebrationProfit" style="color: var(--status-green); margin-top: 10px;">+ R$ 0,00</h1>
+        </div>
+    </div>
+ 
+    <div id="modalRanking" class="modal-overlay">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>🏆 Top Categorias Vendidas</h2>
+                <button class="close-modal" data-modal="modalRanking"><i class="ph ph-x"></i></button>
+            </div>
+            <div id="rankingModalContent" style="display: flex; flex-direction: column; gap: 10px;"></div>
+        </div>
+    </div>
+
     <div id="modalNewProduct" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2>Novo Produto</h2>
-                <button class="close-modal" data-modal="modalNewProduct"><i class="ph ph-x"></i></button>
-            </div>
+            <div class="modal-header"><h2>Novo Produto / Lote</h2><button class="close-modal" data-modal="modalNewProduct"><i class="ph ph-x"></i></button></div>
             <form id="formNewProduct">
-                <div class="input-group">
-                    <label>Foto do Produto</label>
-                    <input type="file" id="productImage" accept="image/*" required>
-                </div>
-                <div class="input-group">
-                    <label>Categoria</label>
-                    <div style="display: flex; gap: 8px;">
-                        <select id="productCategory" required style="flex: 1;"></select>
-                        <button type="button" class="btn btn-primary" id="btnOpenNewCategory" style="width: auto; padding: 0.85rem;"><i class="ph ph-plus"></i></button>
-                    </div>
-                </div>
-                <div class="input-group">
-                    <label>Nome / Título</label>
-                    <input type="text" id="productName" placeholder="Ex: PS4 Fat revisado" required>
-                </div>
+                <div class="input-group"><label>Foto do Produto</label><input type="file" id="productImage" accept="image/*" required></div>
+                <div class="input-group"><label>Categoria</label><select id="productCategory" required></select></div>
+                <div class="input-group"><label>Nome / Título (Item Principal)</label><input type="text" id="productName" placeholder="Ex: PS4 Fat + Lote de Jogos" required></div>
                 <div class="input-group" style="display: flex; gap: 10px;">
-                    <div style="flex: 1;">
-                        <label>Data da Compra</label>
-                        <input type="date" id="productDate" required>
-                    </div>
-                    <div style="flex: 1;">
-                        <label>Valor Investido (R$)</label>
-                        <input type="number" id="productCost" step="0.01" placeholder="Ex: 800.00" required>
+                    <div style="flex: 1;"><label>Data</label><input type="date" id="productDate" required></div>
+                    <div style="flex: 1;"><label>Gasto Total (R$)</label><input type="number" id="productCost" step="0.01" placeholder="Ex: 800.00" required></div>
+                </div>
+                <div class="input-group" style="background: rgba(247, 90, 104, 0.05); padding: 10px; border-radius: 8px; border: 1px dashed rgba(247, 90, 104, 0.3);">
+                    <div style="display: flex; gap: 10px;">
+                        <div style="flex: 1;"><label>Origem do Dinheiro</label><select id="fundSource" required><option value="pocket">Bolso (Novo)</option><option value="profit">Reinvestimento (Lucro)</option></select></div>
+                        <div style="flex: 1;" id="divPaymentMethod"><label>Pagamento</label><select id="paymentMethod"><option value="avista">À Vista / Pix</option><option value="credit">Cartão de Crédito</option></select></div>
                     </div>
                 </div>
-                <div class="input-group">
-                    <label>Descrição</label>
-                    <textarea id="productDesc" rows="2" placeholder="Ex: Acompanha caixa..."></textarea>
+                <div class="input-group" style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; border: 1px dashed #323238; margin-top: 15px;">
+                    <label style="color: var(--blue-primary);"><i class="ph ph-plugs-connected"></i> Itens Secundários (Controles, Jogos)</label>
+                    <div id="subItemsList" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; margin-top: 10px;"></div>
+                    <button type="button" class="btn btn-secondary" id="btnAddSubItem" style="padding: 0.5rem; font-size: 0.9rem; background: transparent; border: 1px solid var(--blue-primary); color: var(--blue-primary);"><i class="ph ph-plus"></i> Adicionar Sub-item</button>
                 </div>
+                <div class="input-group"><label>Descrição</label><textarea id="productDesc" rows="2" placeholder="Ex: Acompanha caixa..."></textarea></div>
                 <button type="submit" class="btn btn-primary" id="btnSaveProduct">Salvar Produto</button>
             </form>
         </div>
     </div>
 
-    <div id="modalAddExpense" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Adicionar Gasto / Peça</h2>
-                <button class="close-modal" data-modal="modalAddExpense"><i class="ph ph-x"></i></button>
-            </div>
-            <form id="formAddExpense">
-                <input type="hidden" id="expenseProductId">
-                
+    <div id="modalEditProduct" class="modal-overlay"><div class="modal-content"><div class="modal-header"><h2>Editar Lote/Produto</h2><button class="close-modal" data-modal="modalEditProduct"><i class="ph ph-x"></i></button></div><form id="formEditProduct"><input type="hidden" id="editProductId"><div class="input-group"><label>Nome</label><input type="text" id="editProductName" required></div><div class="input-group"><label>Categoria</label><select id="editProductCategory" required></select></div><div class="input-group" style="display: flex; gap: 10px;"><div style="flex: 1;"><label>Data da Compra</label><input type="date" id="editProductDate" required></div><div style="flex: 1;"><label>Custo Base Original (R$)</label><input type="number" id="editProductCost" step="0.01" required></div></div><div class="input-group"><label>Descrição</label><textarea id="editProductDesc" rows="2"></textarea></div><button type="submit" class="btn btn-primary" id="btnSaveEdit">Atualizar Dados</button></form></div></div>
+ 
+    <div id="modalAddExpense" class="modal-overlay"><div class="modal-content"><div class="modal-header"><h2>Adicionar Gasto Extra</h2><button class="close-modal" data-modal="modalAddExpense"><i class="ph ph-x"></i></button></div><form id="formAddExpense"><input type="hidden" id="expenseProductId"><div class="input-group"><label>Origem do Gasto</label><select id="expenseType" style="background:#1a1a1e; color:white; border:1px solid #323238; padding:10px; border-radius:8px; width:100%;"><option value="manual">Dinheiro Novo</option><option value="stock">Puxar do Estoque Secundário</option></select></div><div id="expenseManualDiv"><div class="input-group"><label>Descrição</label><input type="text" id="expenseDesc" placeholder="Ex: Limpa contato"></div><div class="input-group"><label>Valor (R$)</label><input type="number" id="expenseCost" step="0.01"></div></div><div id="expenseStockDiv" style="display:none;"><div class="input-group"><label>Selecione a Peça</label><select id="expenseStockPart" style="background:#1a1a1e; color:white; border:1px solid #323238; padding:10px; border-radius:8px; width:100%;"></select></div></div><button type="submit" class="btn btn-primary">Adicionar ao Produto</button></form></div></div>
+
+    <div id="modalAddSubItemExisting" class="modal-overlay">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header"><h2>+ Item Secundário</h2><button class="close-modal" data-modal="modalAddSubItemExisting"><i class="ph ph-x"></i></button></div>
+            <form id="formAddSubItemExisting">
+                <input type="hidden" id="addSubExistingProdId">
                 <div class="input-group">
-                    <label>Origem do Gasto</label>
-                    <select id="expenseType" style="background:#1a1a1e; color:white; border:1px solid #323238; padding:10px; border-radius:8px; width:100%;">
-                        <option value="manual">Dinheiro Novo (Compra avulsa)</option>
-                        <option value="stock">Puxar do Estoque de Insumos</option>
+                    <label>Origem do Item</label>
+                    <select id="subItemSource" style="background:#1a1a1e; color:white; border:1px solid #323238; padding:10px; border-radius:8px; width:100%;">
+                        <option value="new">Criar Novo (Sem Custo Extra)</option>
+                        <option value="stock">Puxar do Estoque Secundário</option>
                     </select>
                 </div>
-
-                <div id="expenseManualDiv">
-                    <div class="input-group">
-                        <label>Descrição</label>
-                        <input type="text" id="expenseDesc" placeholder="Ex: Limpa contato">
-                    </div>
-                    <div class="input-group">
-                        <label>Valor (R$)</label>
-                        <input type="number" id="expenseCost" step="0.01" placeholder="Ex: 50.00">
+                <div id="divSubItemNew">
+                    <div class="input-group" style="display: flex; gap: 10px;">
+                        <div style="flex: 2;"><label>Nome</label><input type="text" id="newSubItemNameExisting" placeholder="Ex: Jogo"></div>
+                        <div style="flex: 1;"><label>Qtd</label><input type="number" id="newSubItemQtyExisting" value="1" min="1"></div>
                     </div>
                 </div>
-
-                <div id="expenseStockDiv" style="display:none;">
-                    <div class="input-group">
-                        <label>Selecione a Peça/Acessório</label>
-                        <select id="expenseStockPart" style="background:#1a1a1e; color:white; border:1px solid #323238; padding:10px; border-radius:8px; width:100%;">
-                            </select>
-                    </div>
+                <div class="input-group" id="divSubItemStock" style="display:none;">
+                    <label>Selecione a Peça do Estoque</label>
+                    <select id="subItemStockPart" style="background:#1a1a1e; color:white; border:1px solid #323238; padding:10px; border-radius:8px; width:100%;"></select>
                 </div>
-
-                <button type="submit" class="btn btn-primary">Adicionar ao Produto</button>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;"><i class="ph ph-info"></i> O item sairá do estoque e será embutido no lote.</p>
+                <button type="submit" class="btn btn-primary">Adicionar ao Lote</button>
             </form>
         </div>
     </div>
-
+ 
     <div id="modalParts" class="modal-overlay">
         <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
-                <h2>Estoque Secundário (Peças)</h2>
+                <h2>Estoque Secundário</h2>
                 <button class="close-modal" data-modal="modalParts"><i class="ph ph-x"></i></button>
             </div>
             
-            <form id="formNewPart" style="background: #1a1a1e; padding: 15px; border-radius: 8px; border: 1px dashed #323238; margin-bottom: 20px;">
-                <h4 style="margin-bottom: 10px; color: var(--blue-primary);">+ Dar Entrada em Peças</h4>
-                <div class="input-group">
-                    <label>Nome do Insumo/Acessório</label>
-                    <input type="text" id="partName" placeholder="Ex: Jogo PS3 Mídia Física" required>
+            <form id="formNewPart" style="background: #1a1a1e; padding: 15px; border-radius: 8px; border: 1px solid #323238; margin-bottom: 20px;">
+                <h4 style="margin-bottom: 12px; color: var(--blue-primary);"><i class="ph ph-plus-circle"></i> Entrada Avulsa (Comprado fora de Lote)</h4>
+                <div class="input-group"><input type="text" id="partName" placeholder="Nome do Insumo (Ex: Cabo HDMI)" required></div>
+                <div style="display: flex; gap: 10px;">
+                    <div class="input-group" style="flex: 1; margin-bottom:0;"><input type="number" id="partQty" value="1" min="1" placeholder="Quantidade" required></div>
+                    <div class="input-group" style="flex: 1; margin-bottom:0;"><input type="number" id="partCost" step="0.01" placeholder="Custo Un. (R$)" required></div>
                 </div>
-                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                    <div style="flex: 1;">
-                        <label>Quantidade</label>
-                        <input type="number" id="partQty" value="1" min="1" required>
-                    </div>
-                    <div style="flex: 1;">
-                        <label>Custo Unitário (R$)</label>
-                        <input type="number" id="partCost" step="0.01" placeholder="0.00" required>
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-primary" style="padding: 0.5rem;">Cadastrar Peças</button>
+                <button type="submit" class="btn btn-primary" style="margin-top: 15px; padding: 0.75rem;"><i class="ph ph-check"></i> Cadastrar Peça</button>
             </form>
 
-            <h4 style="margin-bottom: 10px;">Itens Disponíveis</h4>
-            <ul id="partsList" style="list-style: none; padding: 0; max-height: 200px; overflow-y: auto;">
-                </ul>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid #323238; padding-bottom: 10px;">
+                <button type="button" class="category-pill active" id="filterPartsAll">Todos</button>
+                <button type="button" class="category-pill" id="filterPartsLote">Sobras de Lote</button>
+                <button type="button" class="category-pill" id="filterPartsManual">Avulsos</button>
+            </div>
+            <ul id="partsList" style="list-style: none; padding: 0; max-height: 250px; overflow-y: auto; padding-right: 5px;"></ul>
         </div>
     </div>
 
+    <div id="modalSellSubItem" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header"><h2>Vender Sub-Item Separado</h2><button class="close-modal" data-modal="modalSellSubItem"><i class="ph ph-x"></i></button></div>
+            <form id="formSellSubItem">
+                <input type="hidden" id="sellSubItemProdId">
+                <input type="hidden" id="sellSubItemId">
+                <div class="input-group" style="display: flex; gap: 10px;">
+                    <div style="flex: 2;"><label>Valor da Venda (R$)</label><input type="number" id="sellSubItemValue" step="0.01" required></div>
+                    <div style="flex: 1;"><label>Qtd a Vender</label><input type="number" id="sellSubItemQty" min="1" value="1" required></div>
+                </div>
+                <p style="font-size: 0.85rem; color: var(--status-green); margin-bottom: 1rem;"><i class="ph ph-info"></i> O valor abaterá o custo do lote principal e vai direto pro lucro.</p>
+                <button type="submit" class="btn btn-primary" style="background-color: var(--status-green);">Confirmar Venda</button>
+            </form>
+        </div>
+    </div>
+ 
     <div id="modalNewCategory" class="modal-overlay" style="z-index: 1001;"><div class="modal-content" style="max-width: 350px;"><div class="modal-header"><h2>Nova Categoria</h2><button class="close-modal" data-modal="modalNewCategory"><i class="ph ph-x"></i></button></div><form id="formNewCategory"><div class="input-group"><label>Nome</label><input type="text" id="newCategoryName" required></div><button type="submit" class="btn btn-primary">Criar</button></form></div></div>
     
-    <div id="modalSell" class="modal-overlay"><div class="modal-content"><div class="modal-header"><h2>Concluir Venda</h2><button class="close-modal" data-modal="modalSell"><i class="ph ph-x"></i></button></div><form id="formSell"><input type="hidden" id="sellProductId"><div class="input-group"><label>Canal de Venda</label><select id="sellChannel" required><option value="" disabled selected>Onde você vendeu?</option><option value="Instagram">Instagram</option><option value="Shopee">Shopee</option><option value="OLX">OLX</option><option value="Mercado Livre">Mercado Livre</option><option value="WhatsApp / Boca a Boca">WhatsApp / Boca a Boca</option><option value="Outro">Outro</option></select></div><div class="input-group"><label>Data da Venda</label><input type="date" id="sellDate" required></div><div class="input-group" style="display: flex; gap: 10px;"><div style="flex: 2;"><label>Valor (R$)</label><input type="number" id="sellValue" step="0.01" required></div><div style="flex: 1;"><label>Taxas</label><input type="number" id="sellFee" step="0.01" value="0"></div></div><button type="submit" class="btn btn-primary" style="background-color: var(--status-green);">Confirmar Venda</button></form></div></div>
-    
-    <div id="modalDetails" class="modal-overlay"><div class="modal-content"><div class="modal-header"><h2>Detalhes e Gastos</h2><button class="close-modal" data-modal="modalDetails"><i class="ph ph-x"></i></button></div><div id="detailsContent" style="color: var(--text-main); font-size: 0.95rem;"></div></div></div>
-    
-    <div id="modalChart" class="modal-overlay"><div class="modal-content" style="max-width: 600px;"><div class="modal-header"><h2>Desempenho Financeiro</h2><button class="close-modal" data-modal="modalChart"><i class="ph ph-x"></i></button></div><div style="position: relative; height: 300px; width: 100%;"><canvas id="financeChart"></canvas></div></div></div>
+    <div id="modalSell" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header"><h2>Concluir Venda (Desmembramento)</h2><button class="close-modal" data-modal="modalSell"><i class="ph ph-x"></i></button></div>
+            <form id="formSell">
+                <input type="hidden" id="sellProductId">
+                
+                <div class="input-group" style="display: flex; gap: 10px; margin-bottom: 5px;">
+                    <div style="flex: 2;"><input type="text" id="sellClientName" placeholder="Nome do Cliente (Opcional)"></div>
+                    <div style="flex: 1;"><input type="text" id="sellClientWpp" placeholder="WhatsApp"></div>
+                </div>
 
+                <div class="input-group" style="margin-bottom: 5px;"><select id="sellChannel" required><option value="" disabled selected>Onde você vendeu?</option><option value="Instagram">Instagram</option><option value="Shopee">Shopee</option><option value="OLX">OLX</option><option value="Mercado Livre">Mercado Livre</option><option value="WhatsApp / Boca a Boca">WhatsApp / Boca a Boca</option><option value="Outro">Outro</option></select></div>
+                <div class="input-group" style="margin-bottom: 5px;"><input type="date" id="sellDate" required></div>
+                <div class="input-group" style="display: flex; gap: 10px;">
+                    <div style="flex: 2;"><label style="font-size:0.8rem">Valor Total Recebido (R$)</label><input type="number" id="sellValue" step="0.01" required></div>
+                    <div style="flex: 1;"><label style="font-size:0.8rem">Taxas (R$)</label><input type="number" id="sellFee" step="0.01" value="0"></div>
+                </div>
+
+                <div id="sellSubItemsWrapper" style="display: none; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px dashed #323238; margin-bottom: 15px;">
+                    <h4 style="font-size: 0.85rem; color: var(--text-main); margin-bottom: 5px;">Quais itens acompanham o Lote?</h4>
+                    <p style="font-size: 0.75rem; color: var(--status-yellow); margin-bottom: 10px;"><i class="ph ph-warning-circle"></i> O que sobrar (ou for desmarcado) vai para o Estoque Secundário.</p>
+                    <div id="sellSubItemsChecklist" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="background-color: var(--status-green); width: 100%;"><i class="ph ph-check-circle"></i> Confirmar Venda</button>
+            </form>
+        </div>
+    </div>
+    
+    <div id="modalDetails" class="modal-overlay"><div class="modal-content"><div class="modal-header"><h2>Detalhes e Estratégia</h2><div style="display:flex; gap:10px;"><button class="btn-icon-bg" id="btnTriggerEdit" style="padding: 5px; font-size: 1.2rem;"><i class="ph ph-pencil-simple"></i></button><button class="close-modal" data-modal="modalDetails"><i class="ph ph-x"></i></button></div></div><div id="detailsContent" style="color: var(--text-main); font-size: 0.95rem;"></div></div></div>
+ 
     <script type="module" src="js/app.js"></script>
     <script type="module" src="js/firestore.js"></script>
 </body>
