@@ -1,5 +1,5 @@
 import { db } from './firebase-config.js';
-import { collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, arrayUnion, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, arrayUnion, getDoc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { compressImageToBase64 } from './app.js';
  
 const formatCurrency = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
@@ -16,11 +16,24 @@ let selectedCategoryFilter = "";
 let currentDetailProductId = null; 
 let selectedForBulk = new Set();
 
+// VARIÁVEIS DE CONTROLO DE LUCRO REAL
 window.globalLucroRealizado = 0;
+let retiradasTotais = 0;
+let lucroTecnicoBruto = 0; 
 let currentPartsFilter = 'all';
  
 const monthInput = document.getElementById('monthFilter');
 const clearFilterBtn = document.getElementById('clearFilterBtn');
+
+// --- ESCUTA O VALOR DE RETIRADAS EM TEMPO REAL ---
+onSnapshot(doc(db, "configuracoes", "financas"), (docSnap) => {
+    if (docSnap.exists()) {
+        retiradasTotais = docSnap.data().retiradas || 0;
+    } else {
+        retiradasTotais = 0;
+    }
+    renderDashboard();
+});
 
 // --- LÓGICA DO NOVO DROPDOWN CUSTOMIZADO ---
 const statusDropdown = document.getElementById('statusDropdown');
@@ -57,7 +70,6 @@ if(clearFilterBtn) {
         selectedMonthFilter = ""; selectedStatusFilter = ""; selectedCategoryFilter = "";
         if(monthInput) monthInput.value = ""; 
         
-        // Reseta o Dropdown Visualmente
         if(statusDropdownText) statusDropdownText.innerText = "Status: Todos";
         statusDropdownItems.forEach(i => i.classList.remove('active'));
         if(statusDropdownItems[0]) statusDropdownItems[0].classList.add('active');
@@ -247,7 +259,9 @@ const renderDashboard = () => {
         }
     });
 
-    window.globalLucroRealizado = lucroRealizado; 
+    // --- APLICAÇÃO DAS RETIRADAS ---
+    lucroTecnicoBruto = lucroRealizado; 
+    window.globalLucroRealizado = lucroRealizado - retiradasTotais; 
 
     filteredProducts.forEach((p) => {
         const days = getDaysDiff(p.acquisitionDate);
@@ -288,10 +302,11 @@ const renderDashboard = () => {
     document.getElementById('kpi-stock').innerText = formatCurrency(valorEmEstoque);
     document.getElementById('kpi-pocket').innerText = formatCurrency(investimentoDoBolso);
     
+    // Atualiza o KPI do lucro com as cores corretas
     const kpiProfitElement = document.getElementById('kpi-profit');
-    kpiProfitElement.innerText = formatCurrency(lucroRealizado);
-    if (lucroRealizado > 0) kpiProfitElement.style.color = 'var(--status-green)';
-    else if (lucroRealizado < 0) kpiProfitElement.style.color = 'var(--status-red)';
+    kpiProfitElement.innerText = formatCurrency(window.globalLucroRealizado);
+    if (window.globalLucroRealizado > 0) kpiProfitElement.style.color = 'var(--status-green)';
+    else if (window.globalLucroRealizado < 0) kpiProfitElement.style.color = 'var(--status-red)';
     else kpiProfitElement.style.color = 'var(--text-main)';
     document.getElementById('kpi-sales-count').innerText = `${salesCount} lotes vendidos`;
 };
@@ -361,7 +376,7 @@ document.getElementById('fundSource').addEventListener('change', (e) => { docume
  
 document.getElementById('formNewProduct').addEventListener('submit', async (e) => {
     e.preventDefault(); 
-    const btn = document.getElementById('btnSaveProduct'); btn.innerText = "Salvando..."; btn.disabled = true;
+    const btn = document.getElementById('btnSaveProduct'); btn.innerText = "A guardar..."; btn.disabled = true;
     try {
         const fundSourceVal = document.getElementById('fundSource').value;
         const totalGasto = parseFloat(document.getElementById('productCost').value);
@@ -387,7 +402,7 @@ document.getElementById('formNewProduct').addEventListener('submit', async (e) =
             photo: base64Photo, status: 'in_stock', extraCosts: [], saleValue: 0, saleFee: 0, saleDate: null, profit: 0, adLink: "", saleChannel: "", subItems: subItemsArray, fundSource: fundSourceVal, paymentMethod: paymentMethodVal 
         });
         e.target.reset(); document.getElementById('subItemsList').innerHTML = ''; document.getElementById('modalNewProduct').classList.remove('active'); document.getElementById('divPaymentMethod').style.display = 'block'; 
-    } catch (err) { window.showDialog("Erro", "Erro ao salvar.", "OK"); } finally { btn.innerText = "Salvar Produto"; btn.disabled = false; }
+    } catch (err) { window.showDialog("Erro", "Erro ao guardar.", "OK"); } finally { btn.innerText = "Salvar Produto"; btn.disabled = false; }
 });
 
 document.getElementById('subItemSource').addEventListener('change', (e) => {
@@ -510,7 +525,7 @@ const abrirDetalhesProduto = (id) => {
     currentDetailProductId = id; 
     const p = allProducts.find(prod => prod.id === id); if (!p) return;
     let extraCostsHtml = p.extraCosts && p.extraCosts.length > 0 ? '<ul class="expense-list">' + p.extraCosts.map(cost => `<li class="expense-item"><div><span class="expense-item-desc">${cost.desc}</span><span class="expense-item-date">${new Date(cost.date).toLocaleDateString('pt-BR')}</span></div><span class="expense-item-value">+ ${formatCurrency(cost.value)}</span></li>`).join('') + '</ul>' : '<p style="color:var(--text-muted); font-size: 0.9rem; margin-top:1rem;">Nenhum gasto extra.</p>';
-    const linkSectionHtml = p.status === 'in_stock' ? `<div style="margin-bottom: 15px;"><label style="font-size: 0.85rem; color: var(--text-main); font-weight: 500;">Link do Anúncio:</label><div style="display:flex; gap:8px; margin-top: 4px;"><input type="url" id="editAdLink-${p.id}" value="${p.adLink || ''}" style="flex:1; background:#1a1a1e; border:1px solid #323238; color:var(--text-main); padding:8px; border-radius:6px; font-size:0.9rem;"><button type="button" id="saveAdLink-${p.id}" class="btn-sm" style="background:var(--blue-primary); color:white; border:none; padding:0 15px; border-radius:6px; cursor:pointer; font-weight:bold;">Salvar</button></div></div>` : '';
+    const linkSectionHtml = p.status === 'in_stock' ? `<div style="margin-bottom: 15px;"><label style="font-size: 0.85rem; color: var(--text-main); font-weight: 500;">Link do Anúncio:</label><div style="display:flex; gap:8px; margin-top: 4px;"><input type="url" id="editAdLink-${p.id}" value="${p.adLink || ''}" style="flex:1; background:#1a1a1e; border:1px solid #323238; color:var(--text-main); padding:8px; border-radius:6px; font-size:0.9rem;"><button type="button" id="saveAdLink-${p.id}" class="btn-sm" style="background:var(--blue-primary); color:white; border:none; padding:0 15px; border-radius:6px; cursor:pointer; font-weight:bold;">Guardar</button></div></div>` : '';
  
     let subItemsHtml = '';
     if (p.subItems && p.subItems.length > 0) {
@@ -620,4 +635,64 @@ document.getElementById('formSell').addEventListener('submit', async (e) => {
     } catch (error) { window.showDialog("Erro", "Falha ao concluir a venda.", "OK"); }
 });
  
+const exportCsvBtn = document.getElementById('exportCsvBtn');
 if(exportCsvBtn) exportCsvBtn.addEventListener('click', () => { /* Mantido CSV padrão */ });
+
+// --- LÓGICA DE EDIÇÃO DO LUCRO REAL (MODAL CUSTOMIZADO) ---
+const cardLucro = document.querySelector('.kpi-card.highlight');
+const modalEditProfit = document.getElementById('modalEditProfit');
+const formEditProfit = document.getElementById('formEditProfit');
+
+if (cardLucro && modalEditProfit) {
+    cardLucro.addEventListener('click', () => {
+        const lucroEsperado = lucroTecnicoBruto; 
+        
+        document.getElementById('lblLucroTecnico').innerText = formatCurrency(lucroEsperado);
+        document.getElementById('lblRetiradas').innerText = formatCurrency(retiradasTotais);
+        
+        const valorAtualEmMaos = lucroEsperado - retiradasTotais;
+        document.getElementById('inputRealProfit').value = valorAtualEmMaos > 0 ? valorAtualEmMaos.toFixed(2) : "";
+        
+        modalEditProfit.classList.add('active');
+        
+        setTimeout(() => document.getElementById('inputRealProfit').focus(), 100);
+    });
+    
+    formEditProfit.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const lucroEsperado = lucroTecnicoBruto;
+        const novoValorReal = parseFloat(document.getElementById('inputRealProfit').value);
+        
+        if (!isNaN(novoValorReal)) {
+            const novaRetirada = lucroEsperado - novoValorReal;
+            const btn = formEditProfit.querySelector('button[type="submit"]');
+            
+            try {
+                btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> A guardar...';
+                btn.disabled = true;
+                
+                await setDoc(doc(db, "configuracoes", "financas"), { retiradas: novaRetirada }, { merge: true });
+                
+                modalEditProfit.classList.remove('active');
+                
+                kachingSound.currentTime = 0;
+                kachingSound.play();
+
+            } catch (err) {
+                console.error("Erro ao atualizar retiradas:", err);
+                window.showDialog("Erro", "Falha ao guardar o novo lucro no banco de dados.", "OK", false, true);
+            } finally {
+                btn.innerHTML = '<i class="ph ph-floppy-disk"></i> Guardar Novo Valor';
+                btn.disabled = false;
+            }
+        }
+    });
+
+    const btnCloseModal = modalEditProfit.querySelector('.close-modal');
+    if (btnCloseModal) {
+        btnCloseModal.addEventListener('click', () => {
+            modalEditProfit.classList.remove('active');
+        });
+    }
+}
