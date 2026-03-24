@@ -132,12 +132,14 @@ document.getElementById('btnBulkDelete').addEventListener('click', async () => {
 const populateCategories = () => {
     const pillsContainer = document.getElementById('categoryPills');
     const formSelects = [document.getElementById('productCategory'), document.getElementById('editProductCategory')];
+    
     formSelects.forEach(select => {
         if(select) {
             select.innerHTML = '<option value="" disabled selected>Selecione...</option>';
             allCategories.forEach(cat => { select.innerHTML += `<option value="${cat.name}">${cat.name}</option>`; });
         }
     });
+    
     if(pillsContainer) {
         let html = `<button type="button" class="category-pill ${selectedCategoryFilter === "" ? "active" : ""}" data-cat=""><i class="ph ph-squares-four"></i> Todas</button>`;
         allCategories.forEach(cat => { 
@@ -146,23 +148,32 @@ const populateCategories = () => {
         });
         html += `<button type="button" class="category-pill" id="btnNovaCatPill" style="border-style: dashed; color: var(--blue-primary);"><i class="ph ph-plus"></i> Nova</button>`;
         pillsContainer.innerHTML = html;
-        pillsContainer.querySelectorAll('.category-pill[data-cat]').forEach(pill => { 
-            pill.addEventListener('click', (e) => { 
-                e.preventDefault(); selectedCategoryFilter = e.currentTarget.getAttribute('data-cat'); 
-                selectedForBulk.clear(); document.body.classList.remove('bulk-mode-active'); updateBulkActionBar();
-                populateCategories(); renderDashboard();
-            }); 
-        });
-        const btnNovaCat = document.getElementById('btnNovaCatPill');
-        if(btnNovaCat) btnNovaCat.addEventListener('click', () => document.getElementById('modalNewCategory').classList.add('active'));
-        pillsContainer.querySelectorAll('.btn-delete-cat').forEach(btn => {
-            btn.addEventListener('click', async (e) => { 
+        
+        // --- CORREÇÃO: Usando Event Delegation no pillsContainer para os cliques nas categorias ---
+        pillsContainer.onclick = async (e) => {
+            // Clique na pílula da categoria (filtra)
+            if (e.target.closest('.category-pill[data-cat]')) {
+                e.preventDefault(); 
+                selectedCategoryFilter = e.target.closest('.category-pill[data-cat]').getAttribute('data-cat'); 
+                selectedForBulk.clear(); 
+                document.body.classList.remove('bulk-mode-active'); 
+                updateBulkActionBar();
+                populateCategories(); 
+                renderDashboard();
+            }
+            // Clique no botão de nova categoria
+            else if (e.target.closest('#btnNovaCatPill')) {
+                document.getElementById('modalNewCategory').classList.add('active');
+            }
+            // Clique no botão de deletar categoria
+            else if (e.target.closest('.btn-delete-cat')) {
                 e.stopPropagation(); 
+                const btn = e.target.closest('.btn-delete-cat');
                 if(await window.showDialog("Excluir Categoria", "Deletar esta categoria?", "Excluir", true, true)) {
-                    await deleteDoc(doc(db, "categories", e.currentTarget.getAttribute('data-id'))); 
+                    await deleteDoc(doc(db, "categories", btn.getAttribute('data-id'))); 
                 }
-            });
-        });
+            }
+        };
     }
 };
 
